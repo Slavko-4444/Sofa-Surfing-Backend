@@ -10,6 +10,9 @@ import { AuthController } from './controllers/auth.controller';
 import { User_token, User_tokenSchema } from './schemas/refresh.token.schema';
 import { UserTokenService } from './services/refresh.token.service';
 import { AuthMiddleWare } from './middleware/authentication.middleware';
+import { Article, ArticleSchema } from './schemas/article.schema';
+import { ArticleService } from './services/article.service';
+import { ArticleController } from './controllers/article.controller';
 
 @Module({
   imports: [
@@ -20,11 +23,12 @@ import { AuthMiddleWare } from './middleware/authentication.middleware';
       { name: User.name, schema: UserSchema },
       { name: Administrator.name, schema: AdministratorSchema },
       { name: User_token.name, schema: User_tokenSchema },
+      { name: Article.name, schema: ArticleSchema },
       
     ])
   ],
-  controllers: [AdministratorController, UserController, AuthController,],
-  providers: [UserService, AdministratorService, UserTokenService],
+  controllers: [AdministratorController, UserController, AuthController, ArticleController, ],
+  providers: [UserService, AdministratorService, UserTokenService, ArticleService, ],
 })
   
 export class AppModule implements NestModule {

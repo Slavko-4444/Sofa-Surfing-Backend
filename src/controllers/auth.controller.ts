@@ -103,7 +103,7 @@ export class AuthController {
         await this.tokenService.addUserToken(lookingUser._id.toString(), refreshToken, new Date(JwtRefreshDATA.exp));
 
         const responseObject: loginAuthoInfo = new loginAuthoInfo(
-            lookingUser.email,
+            lookingUser._id.toString(),
             token,
             refreshToken,
            new Date(JwtData.exp).toLocaleString()
