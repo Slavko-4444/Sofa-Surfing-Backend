@@ -1,11 +1,11 @@
 import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
 import { HydratedDocument } from 'mongoose';
 
+export type AdministratorDocument = HydratedDocument<Administrator>;
+
 @Schema()
 export class Administrator{
 
-    @Prop({ required: true })
-    admin_id: number;
     @Prop({ required: true })
     username: string;
     @Prop({ required: true })
