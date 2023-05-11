@@ -49,7 +49,6 @@ export class AuthMiddleWare implements NestMiddleware {
 
         let sad = new Date();
         let bilo = new Date(jwtData.exp);
-        
         if (bilo < sad) {
             throw new HttpException('Token has expired!', HttpStatus.UNAUTHORIZED);
         }

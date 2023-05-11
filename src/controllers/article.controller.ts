@@ -1,6 +1,6 @@
-import { Body, Controller, Delete, Get, Param, Post, Req, UploadedFile, UseInterceptors } from '@nestjs/common';
-import { Document, Types } from 'mongoose';
+import { Body, Controller, Delete, Get, Param, Patch, Post, Req, UploadedFile, UseGuards, UseInterceptors } from '@nestjs/common';
 import { ArticleDto } from 'src/dto/article/add.article.dto';
+import { RoleCheckGuard } from "src/msci/role.check.guard";
 import { AddPhotoPathDto } from 'src/dto/article/add.photo.dto';
 import { ApiResponse } from 'src/msci/api.response';
 import { Article, ArticleDocument } from 'src/schemas/article.schema';
@@ -11,39 +11,75 @@ import * as fs from 'fs';
 import * as sharp from 'sharp';
 import { StorageConfiguraion } from 'config/storage.config';
 import { FileInterceptor } from '@nestjs/platform-express';
+import { EditArticleDto } from 'src/dto/article/edit.article.dto';
+import { ArticleSearchDto } from 'src/dto/article/article.search.dto';
+import { ArticleRange } from 'src/dto/article/article.range.dto';
+import { AllowToRoles } from 'src/msci/allow.to.roles.descriptor';
 
 @Controller('api/article')
 export class ArticleController {
     constructor(private readonly articleService: ArticleService) { }
 
     @Post('newArticle')
+    @UseGuards(RoleCheckGuard)
+    @AllowToRoles('administrator', 'user')
     addArticle(@Body() data: ArticleDto): Promise<Article>{
         return this.articleService.addNewArticle(data);
     }
     
     @Post('Articles/ByUserId/:Id')
+    @UseGuards(RoleCheckGuard)
+    @AllowToRoles('administrator', 'user')
     findArticlesById(@Param("Id") userId: string): Promise<Article[]> {
         return this.articleService.getArticlesByUserId(userId);
     }
     
-    @Get('Articles')
-    findAllArticles(): Promise<Article[]> {
-        return this.articleService.getAllArticles();
+    @Post('Articles')
+    @UseGuards(RoleCheckGuard)
+    @AllowToRoles('administrator', 'user')
+    findAllArticles(@Body() data: ArticleRange): Promise<Article[]> {
+        return this.articleService.getAllArticles(data);
+    }
+    
+    @Get('NumberOfArticles')
+    @UseGuards(RoleCheckGuard)
+    @AllowToRoles('administrator', 'user')
+    getNumber(): Promise<Number> {
+        return this.articleService.seeNumberOfArticles();
     }
     
     @Delete('del/specArtice/:Id')
+    @UseGuards(RoleCheckGuard)
+    @AllowToRoles('administrator', 'user')
     deleteArticleById(@Param("Id") articleId: string): Promise<ApiResponse> {
         return this.articleService.deleteArticle(articleId);
     }
 
     @Post('PhotoAdd/ByArticleId/:Id')
+    @UseGuards(RoleCheckGuard)
+    @AllowToRoles('administrator', 'user')
     addPhotoPath(@Param("Id") articleId: string,@Body() data: AddPhotoPathDto): Promise<Article> {
         return this.articleService.addPhotoPathInArticle(articleId, data.image_path);
     }
+    
+    @Patch('changeArticleStuff')
+    @UseGuards(RoleCheckGuard)
+    @AllowToRoles('administrator', 'user')
+    changeArtile(@Body() data: EditArticleDto): Promise<ArticleDocument | ApiResponse> {
+        return this.articleService.changeArticle(data);
+    }
 
+    @Post('search')
+    @UseGuards(RoleCheckGuard)
+    @AllowToRoles('administrator', 'user')
+    searchArticles(@Body() data: ArticleSearchDto): Promise<ArticleDocument[]> {
+        return this.articleService.searchArticles(data);
+    }
 
     //provjeriti...
     @Post(':id/uploadPhoto/')
+    @UseGuards(RoleCheckGuard)
+    @AllowToRoles('administrator', 'user')
     @UseInterceptors(
         FileInterceptor('photo', {
             storage: diskStorage({
@@ -122,6 +158,7 @@ export class ArticleController {
     }
 
 
+
     async createResizedImage(photo, resizeSettings) {
        
         const destination = resizeSettings.path + "/" + photo.filename;
@@ -134,5 +171,25 @@ export class ArticleController {
         }).toFile(destination);
     }
 
+    @Delete(':articleId/DeletePhoto/:photoId')
+    @UseGuards(RoleCheckGuard)
+    @AllowToRoles('administrator', 'user')
+    async DeletePhoto(
+        @Param('articleId') articleId: string,
+        @Param('photoId') photoId: string
+    ): Promise<ApiResponse> {
+   
+        let articleD = await this.articleService.removePhotoPathFromArticle(articleId, photoId);
+        if (!articleD)
+            return new ApiResponse('error', -4040, 'Article not founded.');
+        
+         try {
+            fs.unlinkSync(StorageConfiguraion.photo.destination + photoId)
+            fs.unlinkSync(StorageConfiguraion.photo.resize.thumb.path + '/' + photoId)
+            fs.unlinkSync(StorageConfiguraion.photo.resize.small.path + '/' + photoId)
+        } catch (e) { }
+
+        return new ApiResponse('success', 0, 'Photo deleted')
+    }
 
 }

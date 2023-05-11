@@ -1,8 +1,9 @@
 
-export class ArticleDto {
+export class EditArticleDto {
     title: string;
     excerpt: string;
     description: string;
     status: "visible" | "hidden";
-    user_id?: string;
+    article_id: string;
+
 }
