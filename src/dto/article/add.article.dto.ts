@@ -4,5 +4,6 @@ export class ArticleDto {
     excerpt: string;
     description: string;
     status: "visible" | "hidden";
-    user_id?: string;
+    user_id: string;
+    userEmail: string;
 }

@@ -15,16 +15,37 @@ import { EditArticleDto } from 'src/dto/article/edit.article.dto';
 import { ArticleSearchDto } from 'src/dto/article/article.search.dto';
 import { ArticleRange } from 'src/dto/article/article.range.dto';
 import { AllowToRoles } from 'src/msci/allow.to.roles.descriptor';
+import { ArticleMailerService } from 'src/services/article.confirmation.service';
+import { SendMailInfo } from 'src/dto/article/send.mail.article.dto';
+import { User } from 'src/schemas/users.schemas';
 
 @Controller('api/article')
 export class ArticleController {
-    constructor(private readonly articleService: ArticleService) { }
+    constructor(
+        private readonly articleService: ArticleService,
+        private readonly mailSenderService: ArticleMailerService
+    ) { }
+
 
     @Post('newArticle')
     @UseGuards(RoleCheckGuard)
     @AllowToRoles('administrator', 'user')
-    addArticle(@Body() data: ArticleDto): Promise<Article>{
-        return this.articleService.addNewArticle(data);
+    async addArticle(@Body() data: ArticleDto): Promise<Article | ApiResponse>{
+        let article = await this.articleService.addNewArticle(data);
+        if (article instanceof ApiResponse)
+            return article;
+        
+        let mailInfo: SendMailInfo = {
+            article_Id: article._id.toString(),
+            userEmail: data.userEmail,
+            title: data.title,
+            excerpt: data.excerpt,
+            description: data.description,
+            date: article.created_at,
+        }
+
+        await this.mailSenderService.senderArticleEmail(mailInfo);
+        return article;
     }
     
     @Post('Articles/ByUserId/:Id')

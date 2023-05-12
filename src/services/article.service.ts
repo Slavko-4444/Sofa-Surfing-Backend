@@ -14,7 +14,7 @@ export class ArticleService {
 
     constructor(@InjectModel(Article.name) private articleModel: Model<Article>) { }
 
-    addNewArticle(data: ArticleDto): Promise<ArticleDocument> {
+    addNewArticle(data: ArticleDto): Promise<ArticleDocument|ApiResponse> {
         return this.articleModel.create({
             user_id: data.user_id,
             title: data.title,
@@ -22,7 +22,8 @@ export class ArticleService {
             description: data.description,
             status: data.status,
             image_path: [],
-        });
+        }).then(res => { return res; })
+            .catch(err => { return new ApiResponse('Error', -1223, 'Article could not be saved'); });
     }
 
     getArticlesByUserId(Id:string): Promise<ArticleDocument[]> {

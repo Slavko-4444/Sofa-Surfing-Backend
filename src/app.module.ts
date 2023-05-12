@@ -13,6 +13,9 @@ import { AuthMiddleWare } from './middleware/authentication.middleware';
 import { Article, ArticleSchema } from './schemas/article.schema';
 import { ArticleService } from './services/article.service';
 import { ArticleController } from './controllers/article.controller';
+import { ArticleMailerService } from './services/article.confirmation.service';
+import { MailerModule } from '@nestjs-modules/mailer'
+import { MailConfig } from 'config/mail.config';
 
 @Module({
   imports: [
@@ -25,10 +28,21 @@ import { ArticleController } from './controllers/article.controller';
       { name: User_token.name, schema: User_tokenSchema },
       { name: Article.name, schema: ArticleSchema },
       
-    ])
+    ]),
+    MailerModule.forRoot({
+      transport: {
+        host: MailConfig.hostname,
+        auth: {
+          user: MailConfig.username,
+          pass: MailConfig.password,
+        }
+      }
+    })
+
   ],
+
   controllers: [AdministratorController, UserController, AuthController, ArticleController, ],
-  providers: [UserService, AdministratorService, UserTokenService, ArticleService, ],
+  providers: [UserService, AdministratorService, UserTokenService, ArticleService, ArticleMailerService ],
 })
   
 export class AppModule implements NestModule {
