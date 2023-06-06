@@ -26,7 +26,7 @@ export class ArticleController {
         private readonly mailSenderService: ArticleMailerService
     ) { }
 
-
+ 
     @Post('newArticle')
     @UseGuards(RoleCheckGuard)
     @AllowToRoles('administrator', 'user')
@@ -62,10 +62,17 @@ export class ArticleController {
         return this.articleService.getAllArticles(data);
     }
     
+    @Post('Articles/visible')
+    @UseGuards(RoleCheckGuard)
+    @AllowToRoles('administrator', 'user')
+    findAllArticlesOFStatus(@Body() data: ArticleRange): Promise<Article[]> {
+        return this.articleService.getAllArticlesOfStatus(data);
+    }
+    
     @Get('NumberOfArticles')
     @UseGuards(RoleCheckGuard)
     @AllowToRoles('administrator', 'user')
-    getNumber(): Promise<Number> {
+    getNumber(): Promise<Number> { 
         return this.articleService.seeNumberOfArticles();
     }
     
@@ -79,7 +86,8 @@ export class ArticleController {
     @Post('PhotoAdd/ByArticleId/:Id')
     @UseGuards(RoleCheckGuard)
     @AllowToRoles('administrator', 'user')
-    addPhotoPath(@Param("Id") articleId: string,@Body() data: AddPhotoPathDto): Promise<Article> {
+    addPhotoPath(@Param("Id") articleId: string, @Body() data: AddPhotoPathDto): Promise<Article> {
+        
         return this.articleService.addPhotoPathInArticle(articleId, data.image_path);
     }
     
@@ -97,6 +105,13 @@ export class ArticleController {
         return this.articleService.searchArticles(data);
     }
 
+    @Get('findArticle/:Id')
+    @UseGuards(RoleCheckGuard)
+    @AllowToRoles('administrator', 'user')
+    searchArticlesSpecArticle(@Param("Id") id: string): Promise<ArticleDocument> {
+        return this.articleService.searchArticleByID(id);
+    }
+
     //provjeriti...
     @Post(':id/uploadPhoto/')
     @UseGuards(RoleCheckGuard)
@@ -105,9 +120,9 @@ export class ArticleController {
         FileInterceptor('photo', {
             storage: diskStorage({
 
-                destination: StorageConfiguraion.photo.destination,
-                filename: (req, file, callback) => {
-                
+                destination: StorageConfiguraion.photo.destination, 
+                filename: (req, file, callback) => { 
+  
                     let original: string = file.originalname;
                     let normalized: string = original.replace(/\s+/g, '-');
                     normalized = normalized.replace(/[^A-z0-9\.\-]/g, ''); // sve sto nije ovo globalno, zamjeni praznim stringom
@@ -137,10 +152,10 @@ export class ArticleController {
                 if (!(file.mimetype.includes('jpeg') || file.mimetype.includes('png'))) {
                     req.ErrorReqHandler = 'Unacceptable file mimetype';
                     callback(null, false);
-                    return;
+                    return;  
                 }
 
-                callback(null, true);
+                callback(null, true);   
             },
             limits: {
                 files: 1,
@@ -149,10 +164,10 @@ export class ArticleController {
         })
     )
     async uploadPhoto( @Param('id') articleId: string, @UploadedFile() photo, @Req() req): Promise<ApiResponse|Article> {
-      
+        // console.log("photo ", photo);
         if (req.ErrorReqHandler)
             return new ApiResponse('error', -4005, req.ErrorReqHandler);
-        
+
         //real mimetype checkout
         let FileTypeResult = await fileType.fromFile(photo.path); //provjeri
 

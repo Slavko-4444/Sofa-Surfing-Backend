@@ -6,11 +6,17 @@ import { ApiResponse } from "src/msci/api.response";
 import { User, UserDocument } from "src/schemas/users.schemas";
 import * as crypto from 'crypto';
 import { UserInfoUpdateDto } from "src/dto/User Info/user.update.info.dto";
+import { ArticleService } from "./article.service";
+import { ArticleDocument } from "src/schemas/article.schema";
+import { async } from "rxjs";
 
 
 @Injectable()
 export class UserService {
-    constructor(@InjectModel(User.name) private userModel: Model<User>) { }
+    constructor(
+        @InjectModel(User.name) private userModel: Model<User>,
+        private articleService: ArticleService
+    ) { }
 
     async findAll(): Promise<UserDocument[]>{
         return this.userModel.find().exec();
@@ -33,6 +39,12 @@ export class UserService {
     }
     
     async deleteUser(id: string): Promise<ApiResponse> {
+        let articles: ArticleDocument[] = await this.articleService.getArticlesByUserId(id);
+        articles.forEach(async(article, index) => {
+          
+            let t = await this.articleService.deleteArticle(String(article._id));
+            console.log("IDemo", t);
+        })
         return new Promise((resolve, reject) => this.userModel
             .findByIdAndRemove({ _id: id })
             .exec()

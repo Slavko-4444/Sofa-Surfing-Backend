@@ -21,13 +21,6 @@ export class UserController {
         return c;
     }
 
-    @Post('registration')
-    @UseGuards(RoleCheckGuard)
-    @AllowToRoles('administrator', 'user')
-    async Registration(@Body() data: UserRegistrationDto): Promise<User|ApiResponse> {
-        
-        return await this.userService.creat(data);
-    }
     
     @Post('findSpec')
     @UseGuards(RoleCheckGuard)

@@ -2,6 +2,7 @@ import { Injectable } from "@nestjs/common";
 import { InjectModel } from "@nestjs/mongoose";
 import { Model } from "mongoose";
 import { ArticleDto } from "src/dto/article/add.article.dto";
+import { ArticleIDDTO } from "src/dto/article/article.id.dto";
 import { ArticleRange } from "src/dto/article/article.range.dto";
 import { ArticleSearchDto } from "src/dto/article/article.search.dto";
 import { EditArticleDto } from "src/dto/article/edit.article.dto";
@@ -22,12 +23,12 @@ export class ArticleService {
             description: data.description,
             status: data.status,
             image_path: [],
-        }).then(res => { return res; })
+        }).then(res =>  res)
             .catch(err => { return new ApiResponse('Error', -1223, 'Article could not be saved'); });
     }
 
     getArticlesByUserId(Id:string): Promise<ArticleDocument[]> {
-        return this.articleModel.find({user_id: Id});
+        return this.articleModel.find({user_id: Id}).sort({ created_at: -1 });
     }
 
     getAllArticles(data: ArticleRange): Promise<ArticleDocument[]> {
@@ -38,8 +39,16 @@ export class ArticleService {
         return this.articleModel.find().sort({createdAt: -1}).skip(data.skip).limit(data.limit);
     }
 
+    getAllArticlesOfStatus(data: ArticleRange): Promise<ArticleDocument[]> {
+        
+        if (!data.limit)  // ako je limit dat kao nula ili nije definisan, uzimamo sve
+            return this.articleModel.find({ status: 'visible' }).sort({created_at: -1}).skip(data.skip).exec();
+            
+        return this.articleModel.find({ status: 'visible' }).sort({created_at: -1}).skip(data.skip).limit(data.limit).exec();
+    }
+
     async seeNumberOfArticles(): Promise<Number> {
-        let article: Article[] = await this.articleModel.find();
+        let article: Article[] = await this.articleModel.find({ status: 'visible' }).exec();
         return article.length;
     }
 
@@ -70,14 +79,17 @@ export class ArticleService {
     searchArticles(data: ArticleSearchDto): Promise<ArticleDocument[]> {
         if (data.keywords.length)
             return this.articleModel.find({
-                $or: [
-                    { title: { $regex: data.keywords, $options: 'i' } },
-                    { excerpt: { $regex: data.keywords, $options: 'i' } },
-                    { description: { $regex: data.keywords, $options: 'i' } },
-                ]
+                    title: { $regex: data.keywords, $options: 'i' } 
+                    // { excerpt: { $regex: data.keywords, $options: 'i' } },
+                    // { description: { $regex: data.keywords, $options: 'i' } },
+                
             })
         
         return this.articleModel.find().exec();
+    }
+    searchArticleByID(data: string): Promise<ArticleDocument> {
+        
+        return this.articleModel.findById(data).exec();
     }
 
     addPhotoPathInArticle(article_id: string, image_p: string): Promise<ArticleDocument> {

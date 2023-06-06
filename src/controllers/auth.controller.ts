@@ -16,6 +16,7 @@ import { User } from "src/schemas/users.schemas";
 import { User_token } from "src/schemas/refresh.token.schema";
 import { UserTokenService } from "src/services/refresh.token.service";
 import { UserRefreshTokenDto } from "src/dto/authorization/user.refresh.token.dto";
+import { UserRegistrationDto } from "src/dto/user/add.user.dto";
 
 
 
@@ -82,7 +83,7 @@ export class AuthController {
         
         const JwtData = new JwtDataDto();
 
-        JwtData.exp = this.getDatePlus(60 * 5) * 1000; 
+        JwtData.exp = this.getDatePlus(60 * 60 * 24) * 1000; 
         JwtData.ip = req.ip;
         JwtData.ua = req.headers["user-agent"].toString();
         JwtData.role = "user";
@@ -110,6 +111,11 @@ export class AuthController {
         );
         
         return responseObject;
+    }
+
+    @Post('registration')
+    async Registration(@Body() data: UserRegistrationDto): Promise<User|ApiResponse> {
+        return await this.userService.creat(data);
     }
 
     @Post('user/refresh')

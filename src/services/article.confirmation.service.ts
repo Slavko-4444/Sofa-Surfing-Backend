@@ -13,7 +13,7 @@ export class ArticleMailerService {
         await  this.mailerService.sendMail({
             to: articleInof.userEmail,
             from: MailConfig.senderEmail,
-           bcc: MailConfig.orderNotificationMail,
+            bcc: MailConfig.orderNotificationMail,
             subject: 'Review about your new post',
             encoding: "UTF-8",
             replyTo: 'no-replay@domain.com',
@@ -37,7 +37,7 @@ export class ArticleMailerService {
                 <p>Datum vaše objave  ${info.date.toLocaleDateString()}</p>
                 <br/>
                 <button style="background-color: green;  height: 40px; width: 150px; border-radius: 20px;">
-                     <a href="http://localhost:3000/api/user/all" style=" text-decoration: none; color: white;">Confiramtion</a>
+                     <a href="http://localhost:4200/api/articles" style=" text-decoration: none; color: white;">Find your article</a>
                 </button>
                
                 <br/>
